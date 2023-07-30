@@ -1,2 +1,2 @@
-# coin_sheet
-An app for monthey expense calculator
+# Coin Sheet
+An app for monthly expense calculator
