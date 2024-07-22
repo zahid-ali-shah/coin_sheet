@@ -1,0 +1,92 @@
+import calendar
+import datetime
+import logging
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views import View
+
+from core.helpers import get_expense_icon, get_pre_month
+from core.models import DailyExpense, TypeOfPaymentModes, PaymentTransaction, PaymentMode
+
+logger = logging.getLogger(__name__)
+
+
+class HomeView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        now = datetime.datetime.now()
+        try:
+            year = int(request.GET.get('year', now.year))
+            month = int(request.GET.get('month', now.month))
+        except ValueError as vex:
+            logger.error(f'Invalid year or month entered. Exception={vex}')
+            return HttpResponse(status=400)
+
+        expenses = {}
+        db_expenses = DailyExpense.get_all_expenses(request.user, month, year)
+        total_expense = 0
+        total_credit_expenses = 0
+        no_of_days_in_current_month = calendar.monthrange(year, month)[1]
+        month_dates = [datetime.date(year, month, day) for day in range(1, no_of_days_in_current_month + 1)]
+
+        for expense in db_expenses:
+            payment_mode = expense.transaction.payment_mode
+            amount = expense.transaction.amount
+            expense.transaction.amount = abs(amount)
+            total_expense = amount + total_expense
+            date = expense.transaction.date
+            expense.icon = get_expense_icon(payment_mode.type)
+            day = expenses.get(date, [])
+            day.append(expense)
+            expenses[date] = day
+
+            if payment_mode.type == TypeOfPaymentModes.CREDIT:
+                total_credit_expenses = amount + total_credit_expenses
+
+        for day_date in month_dates:
+            if expenses.get(day_date, None):
+                continue
+            expenses[day_date] = []
+
+        previous_month, new_year = get_pre_month(month, year)
+
+        return render(request, 'home.html', {
+            'month': calendar.month_name[month],
+            'year': year,
+            'expenses': dict(sorted(expenses.items())),
+            'total_expense': total_expense,
+            'total_credit_expenses': total_credit_expenses,
+            'opening_balance': DailyExpense.get_sum_of_expenses(request.user, previous_month, new_year)
+        })
+
+
+class BankView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        now = datetime.datetime.now()
+        mode_dict = {}
+
+        try:
+            year = int(request.GET.get('year', now.year))
+            month = int(request.GET.get('month', now.month))
+        except ValueError as vex:
+            logger.error(f'Invalid year or month entered. Exception={vex}')
+            return HttpResponse(status=400)
+
+        for mode in PaymentMode.objects.filter(is_active=True).all().order_by('name'):
+            transactions = PaymentTransaction.get_all_name(request.user, month, year, mode)
+            ob = PaymentTransaction.get_ob(request.user, month, year, mode)
+            mode_dict[mode.name] = {
+                'transactions': transactions,
+                'bg_color': mode.bg_color,
+                'sum': PaymentTransaction.get_queryset_sum(transactions) + ob,
+                'ob': ob
+            }
+
+        return render(request, 'core/bank.html', {
+            'month': calendar.month_name[month],
+            'year': year,
+            'mode_dict': mode_dict
+        })
