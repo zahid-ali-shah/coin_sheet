@@ -27,3 +27,9 @@ An app for monthly expense calculator. The work is in progress
 ### Django Admin
 
 ![Dashboard](imgs/admin.png)
+
+***
+
+## License
+
+The code in this repository is licensed under **AGPL v3**, see details [here](LICENSE.txt)
