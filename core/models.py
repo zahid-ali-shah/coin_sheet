@@ -109,6 +109,19 @@ class PaymentTransaction(TimeStampedModel):
     def get_ob(user, month, year, mode):
         from core.helpers import get_pre_month
         month, year = get_pre_month(month, year)
+
+        if month == 6 and year == 2024:
+            if mode.name == "Bank - Alfalah":
+                return Decimal(611346.32).quantize(Decimal("1.00"))
+            elif mode.name == "Bank - NayaPay":
+                return Decimal(2631.18).quantize(Decimal("1.00"))
+            elif mode.name == "Bank - Standard Chartered":
+                return Decimal(148883.30).quantize(Decimal("1.00"))
+            elif mode.name == "Cash - PKR":
+                return Decimal(0).quantize(Decimal("1.00"))
+            elif mode.name == "CC - HBL":
+                return Decimal(3926).quantize(Decimal("1.00"))
+
         return PaymentTransaction.objects.filter(
             user=user, date__month__lte=month, date__year__lte=year, payment_mode=mode
         ).select_related(
