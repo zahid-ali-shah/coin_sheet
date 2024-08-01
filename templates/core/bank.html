@@ -30,12 +30,6 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>OB</td>
-                                <td class="{% if tr.is_deposited %}text-success{% else %}text-danger{% endif %}">
-                                    {{ mode.ob|intcomma|cut:"-" }}
-                                </td>
-                            </tr>
                             {% for tr in mode.transactions %}
                                 <tr>
                                     <td>{{ tr.date }}</td>
@@ -50,6 +44,19 @@
                                     <th scope="row"
                                         class="{% if mode.sum > 0 %}text-success{% else %}text-danger{% endif %}">
                                         {{ mode.sum|floatformat:2|intcomma|cut:"-" }}
+                                    </th>
+                                    </tr>
+                                    <tr>
+                                    <td>OB</td>
+                                        <td class="{% if mode.ob > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ mode.ob|intcomma|cut:"-" }}
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-info">
+                                    <th scope="row">CB</th>
+                                    <th scope="row"
+                                        class="{% if mode.sum > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ mode.cb|floatformat:2|intcomma|cut:"-" }}
                                     </th>
                                     </tr>
                                 {% endif %}

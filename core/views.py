@@ -51,6 +51,7 @@ class HomeView(LoginRequiredMixin, View):
             expenses[day_date] = []
 
         previous_month, new_year = get_pre_month(month, year)
+        _, _, total, mode_dict = get_mode_current_status(request, True)
 
         return render(request, 'home.html', {
             'month': calendar.month_name[month],
@@ -58,35 +59,52 @@ class HomeView(LoginRequiredMixin, View):
             'expenses': dict(sorted(expenses.items())),
             'total_expense': total_expense,
             'total_credit_expenses': total_credit_expenses,
-            'opening_balance': DailyExpense.get_sum_of_expenses(request.user, previous_month, new_year)
+            'opening_balance': DailyExpense.get_sum_of_expenses(request.user, previous_month, new_year),
+            'mode_dict': mode_dict,
+            'total': total
         })
 
 
 class BankView(LoginRequiredMixin, View):
 
     def get(self, request):
-        now = datetime.datetime.now()
-        mode_dict = {}
-
-        try:
-            year = int(request.GET.get('year', now.year))
-            month = int(request.GET.get('month', now.month))
-        except ValueError as vex:
-            logger.error(f'Invalid year or month entered. Exception={vex}')
-            return HttpResponse(status=400)
-
-        for mode in PaymentMode.objects.filter(is_active=True).all().order_by('name'):
-            transactions = PaymentTransaction.get_all_name(request.user, month, year, mode)
-            ob = PaymentTransaction.get_ob(request.user, month, year, mode)
-            mode_dict[mode.name] = {
-                'transactions': transactions,
-                'bg_color': mode.bg_color,
-                'sum': PaymentTransaction.get_queryset_sum(transactions) + ob,
-                'ob': ob
-            }
-
+        year, month, _, mode_dict = get_mode_current_status(request, False)
         return render(request, 'core/bank.html', {
             'month': calendar.month_name[month],
             'year': year,
             'mode_dict': mode_dict
         })
+
+
+def get_mode_current_status(request, short):
+    now = datetime.datetime.now()
+    mode_dict = {}
+    total = 0
+
+    try:
+        year = int(request.GET.get('year', now.year))
+        month = int(request.GET.get('month', now.month))
+    except ValueError as vex:
+        logger.error(f'Invalid year or month entered. Exception={vex}')
+        return HttpResponse(status=400)
+
+    for mode in PaymentMode.objects.filter(is_active=True).all().order_by('name'):
+        transactions = PaymentTransaction.get_all_name(request.user, month, year, mode)
+        ob = PaymentTransaction.get_ob(request.user, month, year, mode)
+        sum_total = PaymentTransaction.get_queryset_sum(transactions)
+        mode_dict[mode.name] = {
+            'transactions': transactions,
+            'bg_color': mode.bg_color,
+            'sum': sum_total,
+            'ob': ob,
+            'cb': sum_total + ob
+        }
+        mode_dict_val = mode_dict[mode.name]
+        total = mode_dict_val['cb'] + total
+
+        if not short:
+            mode_dict_val['transactions'] = transactions
+            mode_dict_val['ob'] = ob
+            mode_dict[mode.name] = mode_dict_val
+
+    return year, month, total, mode_dict

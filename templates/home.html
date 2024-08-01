@@ -94,33 +94,22 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Opening balance</td>
-                            <td>{{ 0|intcomma }}</td>
-                        </tr>
-                        <tr>
-                            <td>Expenses</td>
-                            <td>{{ 0|intcomma }}</td>
-                        </tr>
-                        <tr>
-                            <td>On Credit</td>
-                            <td class="text-danger">{{ 0|intcomma }}</td>
-                        </tr>
-                        <tr>
-                            <td>Cash in hand</td>
-                            <td>{{ 0|intcomma }}</td>
-                        </tr>
+                        {% for name, mode in mode_dict.items %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td>{{ mode.cb|floatformat:2|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
                         <tr class="bg-danger">
                             <th scope="row" class="text-light">Total</th>
-                            <th scope="row" class="text-light">{{ 0|intcomma }}</th>
+                            <th scope="row" class="text-light">{{ total|floatformat:2|intcomma }}</th>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-
+    
     <script>
         $(function() {
             const datePickerEl = $('.date-picker');
