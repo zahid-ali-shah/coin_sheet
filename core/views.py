@@ -8,7 +8,13 @@ from django.shortcuts import render
 from django.views import View
 
 from core.helpers import get_expense_icon, get_pre_month
-from core.models import DailyExpense, TypeOfPaymentModes, PaymentTransaction, PaymentMode
+from core.models import (
+    DailyExpense,
+    TypeOfPaymentModes,
+    PaymentTransaction,
+    PaymentMode,
+    MonthlyBalance
+)
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +96,7 @@ def get_mode_current_status(request, short):
 
     for mode in PaymentMode.objects.filter(is_active=True).all().order_by('name'):
         transactions = PaymentTransaction.get_all_name(request.user, month, year, mode)
-        ob = PaymentTransaction.get_ob(request.user, month, year, mode)
+        ob = MonthlyBalance.get_ob(request.user, month, year, mode)
         sum_total = PaymentTransaction.get_queryset_sum(transactions)
         mode_dict[mode.name] = {
             'transactions': transactions,

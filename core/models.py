@@ -1,8 +1,8 @@
-import uuid
 import datetime
-from decimal import Decimal
+import uuid
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
@@ -105,16 +105,44 @@ class PaymentTransaction(TimeStampedModel):
             Sum('amount', default=0)
         )['amount__sum']
 
+    def __str__(self):
+        return f'{self.id} - {self.amount}'
+
+
+class MonthlyBalance(TimeStampedModel):
+    month = models.PositiveSmallIntegerField(
+        validators=[
+            MaxValueValidator(12),
+            MinValueValidator(1)
+        ]
+    )
+    year = models.PositiveSmallIntegerField(
+        validators=[
+            MaxValueValidator(2050),
+            MinValueValidator(2000)
+        ]
+    )
+    cb = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_mode = models.ForeignKey(
+        PaymentMode, on_delete=models.RESTRICT, related_name='ob'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ob_user'
+    )
+
+    class Meta:
+        unique_together = (('month', 'year', 'payment_mode', 'user',),)
+
     @staticmethod
     def get_ob(user, month, year, mode):
         from core.helpers import get_pre_month
+
         month, year = get_pre_month(month, year)
+        return MonthlyBalance.get_cb(user, month, year, mode)
 
-        return PaymentTransaction.objects.filter(
-            user=user, date__month__lte=month, date__year__lte=year, payment_mode=mode
-        ).select_related(
-            'user', 'payment_mode'
-        ).all().aggregate(Sum('amount', default=0))['amount__sum']
-
-    def __str__(self):
-        return f'{self.id} - {self.amount}'
+    @staticmethod
+    def get_cb(user, month, year, mode):
+        ob_object = MonthlyBalance.objects.filter(
+            user=user, month=month, year=year, payment_mode=mode
+        ).first()
+        return ob_object.cb if ob_object else 0
