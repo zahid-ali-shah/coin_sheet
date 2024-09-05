@@ -1,51 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Django Auth Tutorial{% endblock %}</title>
-    {% load static %}
+
+    {% load static bootstrap5 %}
+    {% bootstrap_css %}
     <link rel="stylesheet" href="{% static 'css/vendor/jquery-ui.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/vendor/fontawesome-all.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
-    <script src="{% static 'js/vendor/jquery-3.7.1.min.js'%}"></script>
-    <script src="{% static 'js/vendor/jquery-ui.min.js'%}"></script>
-    <script src="{% static 'js/vendor/fontawesome-all.js'%}"></script>
-    {% load bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    {% block header %}{% endblock %}
 </head>
 
 <body>
 
-<div class="row px-5 bg-info">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-body-tertiary">
-        <!-- Container wrapper -->
         <div class="container-fluid">
-            <!-- Toggle button -->
             <button
-                    data-mdb-collapse-init
-                    class="navbar-toggler"
-                    type="button"
-                    data-mdb-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
             >
                 <i class="fas fa-bars"></i>
             </button>
 
-            <!-- Collapsible wrapper -->
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <!-- Navbar brand -->
                 <a class="navbar-brand mt-2 mt-lg-0" href="#">
                     <img
-                            src="{% static './icons/dollar-bag.svg' %}"
-                            height="15"
-                            alt="Expense Sheet"
-                            loading="lazy"
+                        src="{% static 'icons/dollar-bag.svg' %}"
+                        height="15"
+                        alt="Expense Sheet"
+                        loading="lazy"
                     />
                 </a>
                 <!-- Left links -->
@@ -63,45 +53,41 @@
                         <a class="nav-link" href="#">Zakat</a>
                     </li>
                 </ul>
-                <!-- Left links -->
-            </div>
-            <!-- Collapsible wrapper -->
 
-            <!-- Right elements -->
-            <div class="d-flex align-items-center">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <input class="nav-link date-picker" />
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-primary">{{ user.get_full_name }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                        </li>
-                    {% endif %}
-                </ul>
+                <div class="d-flex align-items-center">
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <input class="form-control date-picker" placeholder="Select date" aria-label="Date picker" />
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-primary" href="#">{{ user.get_full_name }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
-            <!-- Right elements -->
         </div>
-        <!-- Container wrapper -->
     </nav>
     <!-- Navbar -->
-</div>
 
-<div class="mt-3">
-
-    <main>
+    <main class="container mt-3">
         {% block content %}
         {% endblock %}
     </main>
-</div>
 
+    <!-- Scripts -->
+    {% bootstrap_javascript %}
+    <script src="{% static 'js/vendor/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/vendor/fontawesome-all.js' %}"></script>
 </body>
 
 </html>
