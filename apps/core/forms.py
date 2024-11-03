@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import transaction, IntegrityError
 
-from core.models import DailyExpense, PaymentMode, PaymentTransaction
+from apps.core.models import DailyExpense, PaymentMode, PaymentTransaction
 
 logger = logging.getLogger(__name__)
 DEBIT_STYLE = 'color:green;border-color:green;'

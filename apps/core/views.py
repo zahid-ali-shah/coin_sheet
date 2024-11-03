@@ -8,13 +8,14 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
-from core.helpers import get_expense_icon, get_pre_month, get_next_month
-from core.models import (
+from apps.core.helpers import get_expense_icon, get_pre_month, get_next_month
+from apps.core.models import (
     DailyExpense,
+    Item,
     TypeOfPaymentModes,
     PaymentTransaction,
     PaymentMode,
-    MonthlyBalance
+    MonthlyBalance,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,8 @@ class HomeView(LoginRequiredMixin, View):
 
     def get(self, request):
         now = datetime.datetime.now()
+        user = request.user
+
         try:
             year = int(request.GET.get('year', now.year))
             month = int(request.GET.get('month', now.month))
@@ -32,7 +35,7 @@ class HomeView(LoginRequiredMixin, View):
             return HttpResponse(status=400)
 
         expenses = {}
-        db_expenses = DailyExpense.get_all_expenses(request.user, month, year)
+        db_expenses = DailyExpense.get_all_expenses(user, month, year)
         total_expense = 0
         total_credit_expenses = 0
         no_of_days_in_current_month = calendar.monthrange(year, month)[1]
@@ -66,9 +69,11 @@ class HomeView(LoginRequiredMixin, View):
             'expenses': dict(sorted(expenses.items())),
             'total_expense': total_expense,
             'total_credit_expenses': total_credit_expenses,
-            'opening_balance': DailyExpense.get_sum_of_expenses(request.user, previous_month, new_year),
+            'opening_balance': DailyExpense.get_sum_of_expenses(user, previous_month, new_year),
             'mode_dict': mode_dict,
-            'total': total
+            'total': total,
+            'monthly_aggregates': Item.get_monthly_aggregate_for_highlighted_items(user, month, year),
+            'category_aggregates': Item.get_monthly_aggregate_by_category(user, month, year)
         })
 
 
@@ -103,19 +108,26 @@ def get_mode_current_status(request, short):
         transactions = PaymentTransaction.get_all_name(request.user, month, year, mode)
         ob = MonthlyBalance.get_ob(request.user, month, year, mode)
         sum_total = PaymentTransaction.get_queryset_sum(transactions)
-        mode_dict[mode.name] = {
-            'transactions': transactions,
-            'bg_color': mode.bg_color,
-            'sum': sum_total,
-            'ob': ob,
-            'cb': sum_total + ob
-        }
-        mode_dict_val = mode_dict[mode.name]
-        total = mode_dict_val['cb'] + total
 
-        if not short:
-            mode_dict_val['transactions'] = transactions
-            mode_dict_val['ob'] = ob
-            mode_dict[mode.name] = mode_dict_val
+        if short:
+            mode_dict[mode.name] = {
+                'cb': (sum_total + ob) * mode.conversion_rate
+            }
+            total = mode_dict[mode.name]['cb'] + total
+        else:
+            mode_dict[mode.name] = {
+                'transactions': transactions,
+                'bg_color': mode.bg_color,
+                'sum': sum_total,
+                'ob': ob,
+                'cb': sum_total + ob
+            }
+            mode_dict_val = mode_dict[mode.name]
+            total = mode_dict_val['cb'] + total
+
+            if not short:
+                mode_dict_val['transactions'] = transactions
+                mode_dict_val['ob'] = ob
+                mode_dict[mode.name] = mode_dict_val
 
     return year, month, total, mode_dict

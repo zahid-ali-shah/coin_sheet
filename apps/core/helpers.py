@@ -1,4 +1,4 @@
-from core.models import TypeOfPaymentModes
+from apps.core.models import TypeOfPaymentModes
 
 
 def get_expense_icon(payment_type):

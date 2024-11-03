@@ -3,9 +3,9 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from account.models import User
-from core.models import PaymentMode
-from core.signals import update_closing_balance
+from apps.account.models import User
+from apps.core.models import PaymentMode
+from apps.core.signals import update_closing_balance
 
 
 class Command(BaseCommand):

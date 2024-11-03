@@ -4,18 +4,71 @@ import uuid
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, Q, Value, DecimalField
+from django.db.models.functions import Coalesce
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 
 class Item(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     is_deprecated = models.BooleanField(default=False)
+    is_highlighted = models.BooleanField(default=False, help_text="Highlight this item in monthly summary")
+    categories = models.ManyToManyField(Category, related_name='items', blank=True)
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_monthly_aggregate_for_highlighted_items(user, month, year):
+        """Get monthly aggregate for items marked as highlighted, including those with zero total sum."""
+        highlighted_items = (
+            Item.objects.filter(is_highlighted=True)
+            .annotate(
+                total=Coalesce(
+                    Sum(
+                        'daily_expenses__transaction__amount',
+                        filter=Q(daily_expenses__transaction__user=user) &
+                               Q(daily_expenses__transaction__date__month=month) &
+                               Q(daily_expenses__transaction__date__year=year)
+                    ),
+                    Value(0),
+                    output_field=DecimalField()
+                )
+            )
+            .values('name', 'total')
+        )
+        return highlighted_items
+
+    @classmethod
+    def get_monthly_aggregate_by_category(cls, user, month, year):
+        """Get monthly aggregate for all items grouped by category, including those with zero total sum."""
+        category_aggregates = (
+            Category.objects
+            .annotate(
+                total=Coalesce(
+                    Sum(
+                        'items__daily_expenses__transaction__amount',
+                        filter=Q(items__daily_expenses__transaction__user=user) &
+                               Q(items__daily_expenses__transaction__date__month=month) &
+                               Q(items__daily_expenses__transaction__date__year=year)
+                    ),
+                    Value(0),
+                    output_field=DecimalField()
+                )
+            )
+            .values('name', 'total')
+            .order_by('name')
+        )
+        return category_aggregates
 
 
 class DailyExpense(TimeStampedModel):
@@ -52,12 +105,21 @@ class TypeOfPaymentModes(models.TextChoices):
     BANK = "BN", _("Bank transaction")
 
 
+class CurrencyChoices(models.TextChoices):
+    USD = "USD", _("US Dollar")
+    PKR = "PKR", _("Pakistani Rupee")
+    EUR = "EUR", _("Euro")
+    GBP = "GBP", _("British Pound")
+
+
 class PaymentMode(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=2, choices=TypeOfPaymentModes, default=TypeOfPaymentModes.CASH)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
     bg_color = models.CharField(max_length=6, default='175175')
+    currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, default=CurrencyChoices.PKR)
+    conversion_rate = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000)
 
     def __str__(self):
         return f'{self.name}'
@@ -136,7 +198,7 @@ class MonthlyBalance(TimeStampedModel):
 
     @staticmethod
     def get_ob(user, month, year, mode):
-        from core.helpers import get_pre_month
+        from apps.core.helpers import get_pre_month
 
         month, year = get_pre_month(month, year)
         return MonthlyBalance.get_cb(user, month, year, mode)
@@ -158,7 +220,7 @@ class Trip(TimeStampedModel):
 
     @property
     def cost(self):
-        return abs(self.dailyexpense_set.aggregate(total_cost=Sum('transaction__amount'))['total_cost'])
+        return abs(self.dailyexpense_set.aggregate(total_cost=Sum('transaction__amount'))['total_cost'] or 0)
 
     def __str__(self):
         return f'{self.id} - {self.location}'

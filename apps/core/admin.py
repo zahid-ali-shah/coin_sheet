@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from core.forms import DailyExpenseForm, PaymentTransactionForm
-from core.models import (
+from apps.core.forms import DailyExpenseForm, PaymentTransactionForm
+from apps.core.models import (
+    Category,
     Item,
     DailyExpense,
     PaymentMode,
@@ -14,11 +15,44 @@ from core.models import (
 from utils.admin import ReadOnlyAdminInlineMixin
 
 
+class ItemInlineAdmin(admin.TabularInline):
+    model = Item.categories.through
+    autocomplete_fields = ['item']
+    extra = 1
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    inlines = [ItemInlineAdmin]
+    list_display = ('id', 'name', 'count')
+    search_fields = ('id', 'name')
+
+    def count(self, obj):
+        return obj.items.count()
+
+
+class DailyExpenseInlineAdmin(ReadOnlyAdminInlineMixin, admin.TabularInline):
+    model = DailyExpense
+    fields = ['exp_id', 'item', 'amount', 'date']
+    readonly_fields = ('exp_id', 'amount', 'date',)
+
+    def exp_id(self, obj):
+        return obj.id
+
+    def date(self, obj):
+        return obj.transaction.date
+
+    def amount(self, obj):
+        return obj.transaction.amount
+
+
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'description', 'is_deprecated')
+    inlines = [DailyExpenseInlineAdmin]
+    list_display = ('id', 'name', 'description', 'is_highlighted', 'is_deprecated')
     search_fields = ('id', 'name')
-    list_filter = ('is_deprecated',)
+    list_filter = ('is_deprecated', 'is_highlighted')
+    autocomplete_fields = ('categories',)
 
 
 @admin.register(DailyExpense)
@@ -76,7 +110,7 @@ class DailyExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(PaymentMode)
 class PaymentModeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'uuid', 'name', 'type', 'is_active', 'bg_color_code')
+    list_display = ('id', 'uuid', 'name', 'type', 'currency', 'conversion_rate', 'is_active', 'bg_color_code')
     search_fields = ('name',)
     list_filter = ('type', 'is_active')
 
