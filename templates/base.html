@@ -10,6 +10,7 @@
     <!-- Material Icons and Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Base Styles -->
     <style>
         :root {
@@ -38,7 +39,7 @@
             {% endif %}
             <a href="{% url 'home' %}" class="brand-logo">
                 <i class="material-icons">home</i>
-                <span>My Site</span>
+                <span>Expense Sheet</span>
             </a>
             <div class="nav-actions">
                 {% if user.is_authenticated %}
@@ -69,7 +70,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                             <!-- Form for selecting month and year -->
                 {% else %}
                     <div class="auth-buttons">
@@ -99,6 +100,12 @@
                             <span>Bank</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{% url 'reporting_dashboard' %}">
+                            <i class="material-icons">trending_up</i>
+                            <span>Reporting</span>
+                        </a>
+                    </li>
                     <!-- Add more navigation items here -->
                 </ul>
             </div>
@@ -119,9 +126,7 @@
             </div>
             {% if user.is_authenticated %}
             <aside class="secondary-content">
-                {% block secondary_content %}
-                    <!-- Default secondary content here -->
-                {% endblock %}
+                {% block secondary_content %}{% endblock %}
             </aside>
             {% endif %}
         </div>
@@ -152,7 +157,7 @@
             <div class="footer-bottom">
                 <p>
                     <i class="material-icons">copyright</i>
-                    <span>{{ current_year }} My Site. All rights reserved.</span>
+                    <span>{{ current_year }} Expense Sheet. All rights reserved.</span>
                 </p>
             </div>
         </div>
@@ -164,6 +169,7 @@
             const menuToggle = document.getElementById('menuToggle');
             const sideNav = document.getElementById('sideNav');
             const mainContent = document.querySelector('.main-content');
+            const secondaryContent = document.querySelector('.secondary-content');
 
             if (menuToggle) {
                 menuToggle.addEventListener('click', () => {
@@ -185,6 +191,12 @@
                         userDropdown.classList.remove('show');
                     }
                 });
+            }
+
+            // Check if secondary content is empty and hide it if necessary
+            if (!secondaryContent || !secondaryContent.innerHTML.trim()) {
+                secondaryContent.classList.add('hidden');
+                mainContent.classList.add('no-sidebar');
             }
         });
     </script>

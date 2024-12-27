@@ -8,139 +8,141 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <div>
-        <table>
-            <thead>
-            <tr>
-                <th class="center-align" colspan="5">{{ month }} {{ year }} - Expenses</th>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <th>Item</th>
-                <th>Expense</th>
-                <th>Sum</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for date, expense in expenses.items %}
-                {% if expense %}
-                    {% for obj in expense %}
-                        <tr class="{% if date|is_today %}amber lighten-4{% endif %}">
-                            {% if forloop.first %}
-                                <td rowspan="{{ expense|length }}" class="center-align" style="vertical-align: middle;">
-                                    {{ obj.transaction.date|date:"D, M d, Y" }}
-                                </td>
-                            {% endif %}
-                            <td class="tooltipped" data-position="bottom" data-tooltip="{{ obj.transaction.comment }}">
-                                <i class="{{ obj.icon }}"></i>
-                                {{ obj.item }}
-                                {% if obj.transaction.comment %}
-                                    <i class="material-icons right">info</i>
-                                {% endif %}
-                            </td>
-                            <td class="{% if obj.transaction.is_deposited %}green-text{% else %}red-text{% endif %}">
-                                {{ obj.transaction.amount|intcomma }}
-                            </td>
-                            {% if forloop.first %}
-                                <td rowspan="{{ expense|length }}" style="vertical-align: middle;">
-                                    {% sum_attribute expense %}
-                                </td>
-                            {% endif %}
+<div class="row">
+    <div class="col s12">
+        <div class="card">
+            <div class="card-content">
+                <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="col s12 m4 left-align">
+                        <a href="{{ previous }}" class="btn waves-effect waves-light {% if not previous %}disabled{% endif %}"><i class="material-icons left">chevron_left</i>Previous</a>
+                    </div>
+                    <div class="col s12 m4 center-align">
+                        <h4 class="header" style="margin: 0;">{{ month }} {{ year }}</h4>
+                    </div>
+                    <div class="col s12 m4 right-align">
+                        <a href="{{ next }}" class="btn waves-effect waves-light {% if not next %}disabled{% endif %}"><i class="material-icons right">chevron_right</i>Next</a>
+                    </div>
+                </div>
+                <table class="highlight responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Expense</th>
+                            <th>Sum</th>
                         </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr class="{% if date|is_today %}amber lighten-4{% endif %}">
-                        <td>{{ date|date:"D, M d, Y" }}</td>
-                        <td></td>
-                        <td>0.00</td>
-                        <td>0.00</td>
-                    </tr>
-                {% endif %}
-
-                {% if forloop.last %}
-                    <tr>
-                        <td colspan="3" class="center-align">Total</td>
-                        <td class="{% if total_expense > 0 %}green-text{% else %}red-text{% endif %}">
-                            {{ total_expense|intcomma|cut:"-" }}
-                        </td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        {% for date, expense in expenses.items %}
+                            {% if expense %}
+                                {% for obj in expense %}
+                                    <tr class="{% if date|is_today %}amber lighten-4{% endif %}">
+                                        {% if forloop.first %}
+                                            <td rowspan="{{ expense|length }}" class="center-align" style="vertical-align: middle;">{{ obj.transaction.date|date:"D, M d, Y" }}</td>
+                                        {% endif %}
+                                        <td class="tooltipped" data-position="bottom" data-tooltip="{{ obj.transaction.comment }}">
+                                            <i class="{{ obj.icon }}"></i>{{ obj.item }}{% if obj.transaction.comment %}<i class="material-icons right">info</i>{% endif %}
+                                        </td>
+                                        <td class="{% if obj.transaction.is_deposited %}green-text{% else %}red-text{% endif %}">{{ obj.transaction.amount|intcomma }}</td>
+                                        {% if forloop.first %}
+                                            <td rowspan="{{ expense|length }}" style="vertical-align: middle;">{% sum_attribute expense %}</td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr class="{% if date|is_today %}amber lighten-4{% endif %}">
+                                    <td>{{ date|date:"D, M d, Y" }}</td>
+                                    <td></td>
+                                    <td>0.00</td>
+                                    <td>0.00</td>
+                                </tr>
+                            {% endif %}
+                            {% if forloop.last %}
+                                <tr>
+                                    <td colspan="3" class="center-align">Total</td>
+                                    <td class="{% if total_expense > 0 %}green-text{% else %}red-text{% endif %}">{{ total_expense|intcomma|cut:"-" }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}
 
 {% block secondary_content %}
-    <div>
-        <table>
-            <thead>
-            <tr>
-                <th class="center-align" colspan="2">{{ month }} {{ year }}</th>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for name, mode in mode_dict.items %}
-                <tr>
-                    <td>{{ name }}</td>
-                    <td>{{ mode.cb|floatformat:2|intcomma }}</td>
-                </tr>
-            {% endfor %}
-            <tr>
-                <td>Total</td>
-                <td>{{ total|floatformat:2|intcomma }}</td>
-            </tr>
-            </tbody>
-        </table>
+<div class="row">
+    <div class="col s12">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title center-align">{{ month }} {{ year }}</span>
+                <table class="highlight responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, mode in mode_dict.items %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td>{{ mode.cb|floatformat:2|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td>Total</td>
+                            <td>{{ total|floatformat:2|intcomma }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <br/>
-    <div>
-        <table>
-            <thead>
-            <tr>
-                <th class="center-align" colspan="2">Category Aggregates - {{ month }} {{ year }}</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in category_aggregates %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.total|floatformat:2|intcomma|cut:"-" }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="col s12">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title center-align">Category Aggregates</span>
+                <table class="highlight responsive-table">
+                    <tbody>
+                        {% for item in category_aggregates %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.total|floatformat:2|intcomma|cut:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <br/>
-    <div>
-        <table>
-            <thead>
-            <tr>
-                <th class="center-align" colspan="2">Monthly Aggregates - {{ month }} {{ year }}</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in monthly_aggregates %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.total|floatformat:2|intcomma|cut:"-" }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="col s12">
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title center-align">Monthly Aggregates</span>
+                <table class="highlight responsive-table">
+                    <tbody>
+                        {% for item in monthly_aggregates %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.total|floatformat:2|intcomma|cut:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
+</div>
 {% endblock %}
 
-
 <script>
-    // Initialize Materialize tooltips for comments
     document.addEventListener('DOMContentLoaded', function () {
-        var tooltips = document.querySelectorAll('.tooltipped');
-        M.Tooltip.init(tooltips);
+        const tooltips = document.querySelectorAll('.tooltipped');
+        if (tooltips.length > 0) {
+            M.Tooltip.init(tooltips, {enterDelay: 500});
+        }
     });
 </script>

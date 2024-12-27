@@ -24,15 +24,10 @@ logger = logging.getLogger(__name__)
 class HomeView(LoginRequiredMixin, View):
 
     def get(self, request):
-        now = datetime.datetime.now()
         user = request.user
-
-        try:
-            year = int(request.GET.get('year', now.year))
-            month = int(request.GET.get('month', now.month))
-        except ValueError as vex:
-            logger.error(f'Invalid year or month entered. Exception={vex}')
-            return HttpResponse(status=400)
+        year, month, _, mode_dict = get_mode_current_status(request, False)
+        m_previous = get_pre_month(month, year)
+        m_next = get_next_month(month, year)
 
         expenses = {}
         db_expenses = DailyExpense.get_all_expenses(user, month, year)
@@ -73,7 +68,9 @@ class HomeView(LoginRequiredMixin, View):
             'mode_dict': mode_dict,
             'total': total,
             'monthly_aggregates': Item.get_monthly_aggregate_for_highlighted_items(user, month, year),
-            'category_aggregates': Item.get_monthly_aggregate_by_category(user, month, year)
+            'category_aggregates': Item.get_monthly_aggregate_by_category(user, month, year),
+            'next': f"{reverse('home')}?month={m_next[0]}&year={m_next[1]}",
+            'previous': f"{reverse('home')}?month={m_previous[0]}&year={m_previous[1]}",
         })
 
 

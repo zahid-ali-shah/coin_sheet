@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load extras %}
+
+{% block title %}Reporting Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3>Reporting Dashboard</h3>
+    <form id="filterForm" method="get">
+        <label for="yearSelect">Select Year:</label>
+        <select id="yearSelect" name="year">
+            {% for yr in available_years %}
+                <option value="{{ yr }}" {% if yr == selected_year %}selected{% endif %}>{{ yr }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="monthSelect">Select Month:</label>
+        <select id="monthSelect" name="month">
+            {% for month in 12|to_range %}
+                <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>{{ month }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <ul>
+        <li><a href="{% url 'monthly_expense_by_item' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense by Item</a></li>
+        <li><a href="{% url 'monthly_expense_by_category' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense by Category</a></li>
+        <li><a href="{% url 'total_monthly_expenses' %}?year={{ selected_year }}&month={{ selected_month }}">Total Monthly Expenses</a></li>
+        <li><a href="{% url 'expenses_by_payment_mode' %}?year={{ selected_year }}&month={{ selected_month }}">Expenses by Payment Mode</a></li>
+        <li><a href="{% url 'payment_mode_breakdown' %}?year={{ selected_year }}&month={{ selected_month }}">Payment Mode Breakdown</a></li>
+        <li><a href="{% url 'trip_expense_report' %}?year={{ selected_year }}&month={{ selected_month }}">Trip Expense Report</a></li>
+        <li><a href="{% url 'monthly_balance_report' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Balance Report</a></li>
+        <li><a href="{% url 'compare_expenses_balances' %}?year={{ selected_year }}&month={{ selected_month }}">Comparison of Expenses and Balances</a></li>
+        <li><a href="{% url 'highlighted_items_report' %}?year={{ selected_year }}&month={{ selected_month }}">Highlighted Items Expense Report</a></li>
+        <li><a href="{% url 'user_expense_distribution' %}?year={{ selected_year }}&month={{ selected_month }}">User Expense Distribution</a></li>
+        <li><a href="{% url 'monthly_expense_trend' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense Trend</a></li>
+    </ul>
+</div>
+
+<script>
+    document.getElementById('yearSelect').addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+
+    document.getElementById('monthSelect').addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+</script>
+{% endblock %}

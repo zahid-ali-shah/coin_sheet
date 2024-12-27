@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Highlighted Items Expense Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <b>Highlighted Items Expense Report for {{ month }}/{{ year }}</b>
+    <canvas id="barChart"></canvas>
+</div>
+
+<script>
+    var ctxBar = document.getElementById('barChart').getContext('2d');
+    var barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: {{ items|safe }},
+            datasets: [{
+                label: 'Total Expenses',
+                data: {{ totals|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

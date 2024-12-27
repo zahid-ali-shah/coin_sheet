@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'apps.account',
     'apps.core',
-    'apps.theme'
+    'apps.theme',
+    'apps.reports'
 ]
 
 MIDDLEWARE = [

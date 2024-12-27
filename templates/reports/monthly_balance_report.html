@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Balance Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <b>Monthly Balance Report for {{ year }}</b>
+    <canvas id="lineChart"></canvas>
+    <canvas id="barChart"></canvas>
+</div>
+
+<script>
+    var months = {{ months|safe }};
+    var data = {{ data|safe }};
+    var colors = {{ colors|safe }};
+    var borderColors = {{ border_colors|safe }};
+
+    var datasets = [];
+    var colorIndex = 0;
+
+    for (var mode in data) {
+        datasets.push({
+            label: mode,
+            data: data[mode],
+            backgroundColor: colors[colorIndex % colors.length],
+            borderColor: borderColors[colorIndex % borderColors.length],
+            borderWidth: 1
+        });
+        colorIndex++;
+    }
+
+    var ctxLine = document.getElementById('lineChart').getContext('2d');
+    var lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    var ctxBar = document.getElementById('barChart').getContext('2d');
+    var barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

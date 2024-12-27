@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Monthly Expense Trend{% endblock %}
+
+{% block content %}
+<div class="container">
+    <b>Monthly Expense Trend for {{ year }}</b>
+    <canvas id="lineChart"></canvas>
+</div>
+
+<script>
+    console.log("Months: ", {{ months|safe }});
+    console.log("Expenses: ", {{ expenses|safe }});
+    console.log("Average Expense: ", {{ average_expense|safe }});
+
+    var months = {{ months|safe }};
+    var expenses = {{ expenses|safe }};
+    var averageExpense = {{ average_expense|safe }};
+
+    var averageLine = Array(months.length).fill(averageExpense);
+
+    var ctxLine = document.getElementById('lineChart').getContext('2d');
+    var lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Monthly Expenses',
+                    data: expenses,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Average Expense',
+                    data: averageLine,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    borderDash: [10, 5],
+                    fill: false,
+                    type: 'line'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -7,100 +7,97 @@
 
 {% block title %}Bank{% endblock %}
 
-{% block header %}
-
-{% endblock %}
-
 {% block content %}
-
     <div class="row">
-        <div>
-            <nav aria-label="...">
-              <ul class="pagination">
-                <li class="page-item">
-                  <a class="page-link" href="{{ previous }}">Previous</a>
-                </li>
-                <li class="page-item">
-                  <a class="page-link" href="{{ next }}">Next</a>
-                </li>
-              </ul>
-            </nav>
-        </div>
-        <div class="row">
-            {% for name, mode in mode_dict.items %}
-                
-                {% if forloop.counter0|divisibleby:3 and not forloop.first %}
-                    </div><div class="row">
-                {% endif %}
-                
-                <div class="col s4">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th scope="row" class="text-center" colspan="5">
-                                {{ month }} {{ year }} - {{ name }}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th scope="col">Date</th>
-                            <th scope="col">Amount</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            {% for tr in mode.transactions %}
-                                <tr>
-                                    <td>{{ tr.date }}</td>
-                                    <td class="{% if tr.is_deposited %}text-success{% else %}text-danger{% endif %}">
-                                        {{ tr.amount|intcomma|cut:"-" }}
-                                    </td>
-                                </tr>
-
-                                
-                            {% endfor %}
-                        
-                            <tr>
-                            <th scope="row">Total</th>
-                            <th scope="row"
-                                class="{% if mode.sum > 0 %}text-success{% else %}text-danger{% endif %}">
-                                {{ mode.sum|floatformat:2|intcomma|cut:"-" }}
-                            </th>
-                            </tr>
-                            <tr>
-                            <td>OB</td>
-                                <td class="{% if mode.ob > 0 %}text-success{% else %}text-danger{% endif %}">
-                                    {{ mode.ob|intcomma|cut:"-" }}
-                                </td>
-                            </tr>
-                            <tr class="bg-info">
-                            <th scope="row">CB</th>
-                            <th scope="row"
-                                class="{% if mode.sum > 0 %}text-success{% else %}text-danger{% endif %}">
-                                {{ mode.cb|floatformat:2|intcomma|cut:"-" }}
-                            </th>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
+        <!-- Month Navigation and Current Period Display -->
+        <div class="col s12">
+            <div class="right-align" style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="{{ previous }}" class="btn waves-effect waves-light {% if not previous %}disabled{% endif %}" style="margin-right: 10px;">
+                    <i class="material-icons left">chevron_left</i>Previous Month
+                </a>
+                <h4 class="header" style="margin: 0;">{{ month }} {{ year }}</h4>
+                <a href="{{ next }}" class="btn waves-effect waves-light {% if not next %}disabled{% endif %}" style="margin-left: 10px;">
+                    <i class="material-icons right">chevron_right</i>Next Month
+                </a>
+            </div>
         </div>
     </div>
+
+    <!-- Account Tables -->
+    <div class="masonry-grid">
+        {% for name, mode in mode_dict.items %}
+            <div class="masonry-grid-item">
+                <div class="card">
+                    <div class="card-content">
+                        <span class="card-title center-align">{{ name }}</span>
+                        <div class="table-container" style="overflow-x: auto;">
+                            <table class="highlight">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="right-align">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tr in mode.transactions %}
+                                        <tr>
+                                            <td>{{ tr.date }}</td>
+                                            <td class="right-align {% if tr.is_deposited %}green-text{% else %}red-text{% endif %}">
+                                                {{ tr.amount|intcomma|cut:"-" }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total</th>
+                                        <th class="right-align {% if mode.sum > 0 %}green-text{% else %}red-text{% endif %}">
+                                            {{ mode.sum|floatformat:2|intcomma|cut:"-" }}
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>Opening Balance</td>
+                                        <td class="right-align {% if mode.ob > 0 %}green-text{% else %}red-text{% endif %}">
+                                            {{ mode.ob|intcomma|cut:"-" }}
+                                        </td>
+                                    </tr>
+                                    <tr class="blue lighten-4">
+                                        <th>Closing Balance</th>
+                                        <th class="right-align {% if mode.sum > 0 %}green-text{% else %}red-text{% endif %}">
+                                            {{ mode.cb|floatformat:2|intcomma|cut:"-" }}
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <style>
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Four equal columns */
+            gap: 1rem; /* Space between grid items */
+            margin: 0; /* Remove extra margins */
+        }
+        .masonry-grid-item {
+            break-inside: avoid; /* Avoid breaking items inside columns */
+        }
+    </style>
+
+    {% block extra_js %}
     <script>
-        $(function() {
-            const datePickerEl = $('.date-picker');
-            datePickerEl.datepicker( {
-                changeMonth: true,
-                changeYear: true,
-                showButtonPanel: true,
-                dateFormat: 'MM yy',
-                defaultDate: new Date(),
-                onClose: function(dateText, inst) {
-                    $(this).datepicker('setDate', new Date(inst.selectedYear, inst.selectedMonth, 1));
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            const grid = document.querySelector('.masonry-grid');
+
+            // Force re-layout on window resize
+            window.addEventListener('resize', () => {
+                grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
             });
-            datePickerEl.datepicker( "setDate", new Date() );
-        });
-        $( document ).ready(function() {
-            $('[data-bs-toggle="tooltip"]').tooltip();
         });
     </script>
+    {% endblock %}
 {% endblock %}

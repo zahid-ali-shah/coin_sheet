@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Mode Breakdown{% endblock %}
+
+{% block content %}
+<div class="container">
+    <b>Payment Mode Breakdown for {{ month }}/{{ year }}</b>
+    <canvas id="stackedBarChart"></canvas>
+</div>
+
+<script>
+    var ctxStacked = document.getElementById('stackedBarChart').getContext('2d');
+    var stackedBarChart = new Chart(ctxStacked, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: {{ datasets|length }}}, (_, i) => i + 1),
+            datasets: {{ datasets|safe }}
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                x: {
+                    stacked: true
+                },
+                yAxes: [{
+                    stacked: true
+                }]
+            }
+        }
+    });
+</script>
+{% endblock %}

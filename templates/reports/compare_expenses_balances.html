@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Comparison of Expenses and Balances{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3>Comparison of Expenses and Balances for {{ year }}</h3>
+    <div style="height: 2000px;">
+    <canvas id="groupedBarChart"></canvas>  <!-- Increased height -->
+    </div>
+</div>
+
+<script>
+    console.log("Months: ", {{ months|safe }});
+    console.log("Expenses Data: ", {{ expenses_data|safe }});
+    console.log("Balances Data: ", {{ balances_data|safe }});
+    console.log("Colors: ", {{ colors|safe }});
+    console.log("Border Colors: ", {{ border_colors|safe }});
+
+    var months = {{ months|safe }};
+    var expensesData = {{ expenses_data|safe }};
+    var balancesData = {{ balances_data|safe }};
+    var colors = {{ colors|safe }};
+    var borderColors = {{ border_colors|safe }};
+
+    var datasets = [];
+    var colorIndex = 0;
+
+    for (var mode in balancesData) {
+        datasets.push({
+            label: mode + ' Opening Balance',
+            data: balancesData[mode],
+            backgroundColor: colors[colorIndex % colors.length],
+            borderColor: borderColors[colorIndex % borderColors.length],
+            borderWidth: 1
+        });
+        colorIndex++;
+    }
+
+    datasets.push({
+        label: 'Total Expenses',
+        data: expensesData,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+    });
+
+    var ctxGrouped = document.getElementById('groupedBarChart').getContext('2d');
+    var groupedBarChart = new Chart(ctxGrouped, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

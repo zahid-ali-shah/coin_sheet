@@ -228,7 +228,6 @@ body {
     margin-right: 12px;
 }
 
-/* Main Content */
 .main-content {
     margin-top: var(--top-nav-height);
     flex: 1;
@@ -257,8 +256,28 @@ body {
 }
 
 .secondary-content {
-    width: 300px;
-    flex-shrink: 0;
+    flex: 0 0 300px;
+    max-width: 300px;
+}
+
+.no-sidebar .primary-content {
+    flex: 1 1 100%;
+}
+
+.with-sidebar .primary-content {
+    flex: 1;
+}
+
+.with-sidebar .secondary-content {
+    display: block;
+}
+
+.secondary-content.hidden {
+    display: none;
+}
+
+.content-wrapper.no-sidebar .primary-content {
+    flex: 1 1 100%;
 }
 
 /* Footer */
@@ -423,4 +442,9 @@ table th, table td {
     border: 1px solid var(--secondary-color);
     padding: 8px;
     text-align: center;
+}
+
+/* Ensure dropdowns are visible */
+select {
+    display: block !important;
 }
