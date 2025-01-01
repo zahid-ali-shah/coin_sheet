@@ -9,6 +9,9 @@ from apps.core.signals import update_closing_balance
 
 
 class Command(BaseCommand):
+    """
+    python manage.py sync_closing_balance --email=example@example.com --month=1 --year=2020
+    """
 
     def add_arguments(self, parser):
         parser.add_argument('--email', type=str, required=True)
