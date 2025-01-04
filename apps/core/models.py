@@ -88,6 +88,15 @@ class DailyExpense(TimeStampedModel):
         ).all().order_by('transaction__date', 'transaction__payment_mode__type')
 
     @staticmethod
+    def get_sum_of_expenses_by_mode(user, month, year, mode):
+        return DailyExpense.objects.filter(
+            transaction__user=user, transaction__date__month=month, transaction__date__year=year,
+            transaction__payment_mode__id=mode,
+        ).select_related('transaction__user', 'item', 'transaction', 'transaction__payment_mode').aggregate(
+            Sum('transaction__amount', default=0)
+        )['transaction__amount__sum']
+
+    @staticmethod
     def get_sum_of_expenses(user, month, year):
         return DailyExpense.objects.filter(
             transaction__user=user, transaction__date__month=month, transaction__date__year=year,

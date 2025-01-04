@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('dashboard/', views.reporting_dashboard, name='reporting_dashboard'),
+    path('monthly_expense_by_mode/', views.monthly_expense_by_mode, name='monthly_expense_by_mode'),
     path('monthly_expense_by_item/', views.monthly_expense_by_item, name='monthly_expense_by_item'),
     path('monthly_expense_by_category/', views.monthly_expense_by_category, name='monthly_expense_by_category'),
     path('total_monthly_expenses/', views.total_monthly_expenses, name='total_monthly_expenses'),

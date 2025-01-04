@@ -289,3 +289,28 @@ def monthly_expense_trend(request):
     }
     return render(request, 'reports/monthly_expense_trend.html', context)
 
+
+@login_required
+def monthly_expense_by_mode(request):
+    selected_year = request.GET.get('year', datetime.datetime.now().year)
+    selected_month = request.GET.get('month', datetime.datetime.now().month)
+    year = int(selected_year)
+    month = int(selected_month)
+
+    payment_modes = PaymentMode.objects.values_list('id', 'name')
+
+    mode_ids = [mode[0] for mode in payment_modes]
+    mode_names = [mode[1] for mode in payment_modes]
+    balances = []
+
+    for mode_id, mode_name in zip(mode_ids, mode_names):
+        opening_balance = float(
+            abs(DailyExpense.get_sum_of_expenses_by_mode(user=request.user, month=month, year=year, mode=mode_id))
+        )
+        balances.append(opening_balance)
+
+    context = {
+        'labels': mode_names,
+        'balances': balances,
+    }
+    return render(request, 'reports/monthly_expense_by_mode.html', context)

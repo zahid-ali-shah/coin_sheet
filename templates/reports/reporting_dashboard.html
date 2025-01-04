@@ -23,6 +23,7 @@
     </form>
 
     <ul>
+        <li><a href="{% url 'monthly_expense_by_mode' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense by Mode</a></li>
         <li><a href="{% url 'monthly_expense_by_item' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense by Item</a></li>
         <li><a href="{% url 'monthly_expense_by_category' %}?year={{ selected_year }}&month={{ selected_month }}">Monthly Expense by Category</a></li>
         <li><a href="{% url 'total_monthly_expenses' %}?year={{ selected_year }}&month={{ selected_month }}">Total Monthly Expenses</a></li>
